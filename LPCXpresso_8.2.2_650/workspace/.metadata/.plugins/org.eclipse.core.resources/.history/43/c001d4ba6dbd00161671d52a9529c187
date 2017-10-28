@@ -1,0 +1,325 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+#define TICKRATE_HZ1 (1000)//100000
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include "DigitalIOPin.h"
+#include "LiquidCrystal.h"
+#include <stdio.h>
+#include "RealTimeClock.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/**
+* @brief Handle interrupt from SysTick timer
+* @return Nothing
+*/
+
+enum alarmClockModes_t {
+	SHOWTIME,
+	SETTIME_HOUR,
+	SETTIME_MIN,
+	SETALARM_ONOFF,
+	SETALARM_HOUR,
+	SETALARM_MIN
+};
+
+
+using namespace std;
+
+RealTimeClock myClock;
+
+static RealTimeClock *clock = &myClock;
+
+static volatile uint32_t timerTick;
+static volatile int counter;
+
+void SysTick_Handler(void)
+{
+	if(clock != NULL) clock->Tick();//clock->Tick();
+	//timerTick++;
+	if(counter > 0) counter--;
+}
+#ifdef __cplusplus
+}
+#endif
+
+void Sleep(int ms)
+{
+counter = ms;
+	while(counter > 0) {
+	__WFI();
+	}
+}
+
+int WriteHour(int now,LiquidCrystal *display){
+	char H[3]= {0,0,0};
+	int h;
+	h = (now/36000)%24;
+	if(h>24){h=0;}
+	sprintf(H,"%d", h);
+	if(h < 10){
+		display->setCursor(9, 1);
+		display->print(H);
+	}else{
+		display->setCursor(8, 1);
+		display->print(H);}
+	if(h == 0 ){display->setCursor(8, 1);display->print(" ");}
+	return h;
+}
+
+
+void Do4But1(int but1press,LiquidCrystal *display, string onOff, int x, int y){
+	if(but1press == 0){
+		display ->clear();
+		display->setCursor(x, y);
+		display->print("Time");
+	}
+	if(but1press == 1){
+		display ->clear();
+		display ->setCursor(x-1, y);
+		display ->print(">");
+		display ->setCursor(x, y);
+		display ->print(onOff);
+	}
+	if(but1press == 2){
+		display ->setCursor(x+11, y-1);
+		display ->print(" ");
+		display ->setCursor(x, y);
+		display ->print(">");
+	}
+	if(but1press == 3 || but1press == 5){
+		display ->setCursor(x-6, y);
+		display ->print(" ");
+		display ->setCursor(x, y);
+		display ->print("<");
+	}
+	if(but1press == 4){
+		display ->setCursor(x+6, y);
+		display ->print(" ");
+		display ->setCursor(x, y);
+		display ->print(">");
+	}
+
+}
+
+int ReadSetHour(int setH, int but1press,int but2press){
+	if(but1press == 2 || but1press == 4){
+		if(but2press < 24 && but2press > 0){setH = setH + 1;}
+		if(but2press == 24){setH = 0;}
+		if(but2press > 24){setH = 60%24 + 1;}
+		return setH;
+	}
+}
+int ReadSetMinute(int setM, int but1press,int but2press){
+	if(but1press == 3 || but1press == 5){
+		int setM;
+		setM = but2press;
+		return setM;
+	}
+}
+
+int ChangeValueWithButton(DigitalIoPin *button, int value, int direction, int min, int max){
+	bool state;
+	state = button->read();
+	if(state == true){
+		while(state){
+			state = button->read();
+		}
+		value = value + direction;
+		if(value > max){value = min;}
+		if(value < min){value = max;}
+	}
+	return value;
+}
+
+void clearBuffer(char *buffer, int length) {
+	int i;
+	for (i=1; i<length; i++) {
+		*buffer = 0;
+		buffer++;
+	}
+	return;
+}
+
+
+int main(void) {
+	uint32_t sysTickRate;
+
+	#if defined (__USE_LPCOPEN)
+	#if !defined(NO_BOARD_LIB)
+		Board_Init();
+		Chip_RIT_Init(LPC_RITIMER); // initialize RIT (enable clocking etc.)
+
+	#endif
+	#endif
+	SystemCoreClockUpdate();
+	Chip_Clock_SetSysTickClockDiv(1);
+	sysTickRate = Chip_Clock_GetSysTickClockRate();
+	SysTick_Config(sysTickRate / TICKRATE_HZ1);
+
+    DigitalIoPin d4 (10, 0, true, true, false);
+
+    DigitalIoPin rs (8, 0, false, true, false);
+    DigitalIoPin enable (6, 1, false, true, false);
+    DigitalIoPin d0 (8, 1, false, true, false);
+    DigitalIoPin d1 (5, 0, false, true, false);
+    DigitalIoPin d2 (6, 0, false, true, false);
+    DigitalIoPin d3 (7, 0, false, true, false);
+
+    DigitalIoPin button1 (17, 0, true, true, false);
+	DigitalIoPin button2 (11, 1, true, true, false);
+	DigitalIoPin button3 (9, 1, true, true, false);
+
+    LiquidCrystal lcd(&rs, &enable, &d0, &d1, &d2, &d3);
+
+
+    int valueS;
+    int now;
+
+    int compare;
+    int updateTime = 0;
+    int test = 0;
+    bool ledTest = false;
+
+    char modeString[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int mode = 0;
+    int modeChange = 0;
+    int alarmEnable = 0;
+	int alarmHour = 0;
+	int alarmMin = 0;
+	int setHour = 10;
+	int setMin = 0;
+	int Hour;
+	int Min;
+	int Sec;
+	int displayHour = 0;
+	int displayMin = 0;
+	char alarmString[3] = {0,0,0};
+
+	char displayBuffer[2][15] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+	char *printPos;
+	bool displayUpdate = true;
+	int nextUpdate = 0;
+	int updatePeriod = 1000;
+	bool flash = true;
+	int blinkUpdate = 0;
+
+    while(1) {
+    	switch(mode) {
+    	case 0:
+    		sprintf(modeString, "  Time  ");
+    		break;
+    	case 1:
+    		sprintf(modeString, "Set time H");
+    		setHour = ChangeValueWithButton(&button2, setHour, 1, 0, 23);
+    		setHour = ChangeValueWithButton(&button3, setHour, -1, 0, 23);
+    		break;
+    	case 2:
+    		sprintf(modeString, "Set time M");
+    		setMin = ChangeValueWithButton(&button2, setMin, 1, 0, 59);
+    		setMin = ChangeValueWithButton(&button3, setMin, -1, 0, 59);
+    		break;
+    	case 3:
+    		sprintf(modeString, "Set alarm Mode");
+    		alarmEnable = ChangeValueWithButton(&button2, alarmEnable, 1, 0, 1);
+    		alarmEnable = ChangeValueWithButton(&button3, alarmEnable, 1, 0, 1);
+    		break;
+    	case 4:
+    		sprintf(modeString, "Set alarm H");
+    		alarmHour = ChangeValueWithButton(&button2, alarmHour, 1, 0, 23);
+    		alarmHour = ChangeValueWithButton(&button3, alarmHour, -1, 0, 23);
+			break;
+    	case 5:
+    		sprintf(modeString, "Set alarm M");
+    		alarmMin = ChangeValueWithButton(&button2, alarmMin, 1, 0, 59);
+    		alarmMin = ChangeValueWithButton(&button3, alarmMin, -1, 0, 59);
+    	    break;
+    	}
+
+    	now = clock->GetTick();
+		if (now > nextUpdate) {
+			nextUpdate = now + updatePeriod;
+			displayUpdate = true;
+		}
+    	Sec  = (now / TICKRATE_HZ1) % 60;
+    	Min  = (now / TICKRATE_HZ1 / 60 + setMin) % 60;
+    	Hour = (now / TICKRATE_HZ1 / 360 + setHour) % 24;
+
+		if (displayUpdate) {
+			displayUpdate = false;
+
+			clearBuffer(&displayBuffer[0][0], 30);
+
+			// Update flash modifier to show cursor position
+			if (mode > 0) {
+				flash != flash;
+				updatePeriod = TICKRATE_HZ1 / 4;
+			} else {
+				flash = true;
+				updatePeriod = TICKRATE_HZ1;
+			};
+			// Show current time or alarm time?
+			if (mode < 3) {
+				displayHour = Hour;
+				displayMin  = Min;
+			} else {
+
+				displayHour = alarmHour;
+				displayMin  = alarmMin;
+			}
+
+			sprintf(displayBuffer[0], "%s", modeString);
+			sprintf(displayBuffer[1], "  %2d:%2d:%2d ", displayHour, displayMin, Sec);
+
+			lcd.clear();
+			lcd.setCursor(0, 0);
+			lcd.print(displayBuffer[0]);
+			lcd.setCursor(0, 1);
+			lcd.print(displayBuffer[1]);
+			if(displayMin<10){lcd.setCursor(5, 1);lcd.print("0");}else{}
+			if(Sec<10){lcd.setCursor(8, 1);lcd.print("0");}else{}
+			if(mode > 2){
+				if (alarmEnable == 1) {
+					sprintf(alarmString, "ON ");
+					lcd.setCursor(12, 1);
+					lcd.print(alarmString);
+				} else {
+					sprintf(alarmString, "OFF");
+					lcd.setCursor(12, 1);
+					lcd.print(alarmString);
+				}
+			}else{}
+
+			//alarm blink
+
+    	}
+
+		if(alarmHour == Hour && alarmMin == Min && alarmEnable == 1){
+			if(blinkUpdate < TICKRATE_HZ1 ){
+				Board_LED_Set(0, true);
+				blinkUpdate = blinkUpdate + TICKRATE_HZ1;
+			}else if (blinkUpdate == TICKRATE_HZ1 ){Board_LED_Set(0, false);blinkUpdate =0;}
+		}
+
+    	modeChange = ChangeValueWithButton(&button1, mode, 1, 0, 5);
+    	if (mode != modeChange) {
+    		mode = modeChange;
+    		displayUpdate = true;
+    	}
+    }
+    return 0;
+}

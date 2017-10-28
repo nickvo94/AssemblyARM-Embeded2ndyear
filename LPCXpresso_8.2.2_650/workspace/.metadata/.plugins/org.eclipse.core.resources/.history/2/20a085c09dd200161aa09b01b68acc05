@@ -1,0 +1,129 @@
+/*
+ * StateMachine.cpp
+ *
+ *  Created on: Dec 30, 2016
+ *      Author: Nick
+ */
+
+#include "StateMachine.h"
+
+StateMachine::StateMachine() {
+	currentState = None;
+}
+
+StateMachine::~StateMachine() {
+	// TODO Auto-generated destructor stub
+}
+
+void StateMachine::HandleState(bool pedestrian, bool car, uint32_t ticks_){
+
+	cartime = carCount.hasWaited();
+	pedtime = pedCount.hasWaited();
+	sprintf(count, "car: %d, ped:%d\n", cartime, pedtime);
+	ITM_write(count);
+
+	switch(currentState){
+
+		case None:
+
+			lightState = AllRed;
+
+			if (car) {
+				carCount.startWait(0);
+				currentState = CarEnter;
+			}
+			//if (car == false) { currentState = CarExit; }
+			if (pedestrian) {
+				pedCount.startWait(0);
+				currentState = PedestrianEnter;
+			}
+			//if (pedestrian == false) { currentState = PedestrianExit; }
+
+			break;
+
+		case CarEnter:
+
+			if (carCount.hasWaited() < 5000) {
+				lightState = CartoGreen;
+			}
+			if (carCount.hasWaited() > 5000){
+				lightState = CarGreen;
+				if (carCount.hasWaited() > 30000) { currentState = CarExit; }
+				if (pedestrian){
+					pedCount.startWait(0);
+					currentState = PedestrianEnter;
+				}
+			}
+			break;
+
+		case CarExit:
+			currentState = None;
+			break;
+
+		case PedestrianEnter:
+
+			if(lightState == AllRed){
+				if(pedCount.hasWaited() > 1000){
+					lightState = PedGreen;
+					if(pedCount.hasWaited() > 10000){currentState = PedestrianExit;}
+				}
+			}
+			if(lightState == CarGreen){
+				if(pedCount.hasWaited() < 5000){
+					lightState = CartoRed;
+				}
+			}
+			if(pedCount.hasWaited() > 5000){
+				lightState = PedGreen;
+				if(pedCount.hasWaited() > 15000){currentState = PedestrianExit;}
+			}
+			break;
+
+
+		case PedestrianExit:
+			currentState = None;
+			break;
+
+
+	}
+
+
+	switch(lightState) {
+	case AllRed:
+		LEDS.setLED(0, true);
+		LEDS.setLED(1, false);
+		LEDS.setLED(2, true);
+		LEDS.setLED(3, false);
+		LEDS.setLED(4, false);
+		break;
+	case CartoGreen:
+		LEDS.setLED(0, true);
+		LEDS.setLED(1, false);
+		LEDS.setLED(2, true);
+		LEDS.setLED(3, true);
+		LEDS.setLED(4, false);
+		break;
+	case CarGreen:
+		LEDS.setLED(0, true);
+		LEDS.setLED(1, false);
+		LEDS.setLED(2, false);
+		LEDS.setLED(3, false);
+		LEDS.setLED(4, true);
+		break;
+	case CartoRed:
+		LEDS.setLED(0, true);
+		LEDS.setLED(1, false);
+		LEDS.setLED(2, false);
+		LEDS.setLED(3, true);
+		LEDS.setLED(4, false);
+		break;
+	case PedGreen:
+		LEDS.setLED(0, false);
+		LEDS.setLED(1, true);
+		LEDS.setLED(2, true);
+		LEDS.setLED(3, false);
+		LEDS.setLED(4, false);
+		break;
+	}
+}
+

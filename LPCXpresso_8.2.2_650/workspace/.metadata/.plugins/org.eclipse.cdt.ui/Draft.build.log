@@ -1,0 +1,21 @@
+21:39:26 **** Build of configuration Debug for project Draft ****
+make -r all 
+Building target: Draft.axf
+Invoking: MCU Linker
+arm-none-eabi-gcc -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="Draft.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "Draft_Debug.ld" -o "Draft.axf"  ./src/Draft.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:        4824 B       256 KB      1.84%
+         Ram0_16:           4 B        16 KB      0.02%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: Draft.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "Draft.axf"; # arm-none-eabi-objcopy -v -O binary "Draft.axf" "Draft.bin" ; # checksum -p LPC1549 -d "Draft.bin";
+   text	   data	    bss	    dec	    hex	filename
+   4824	      0	      4	   4828	   12dc	Draft.axf
+ 
+
+21:39:26 Build Finished (took 344ms)
+

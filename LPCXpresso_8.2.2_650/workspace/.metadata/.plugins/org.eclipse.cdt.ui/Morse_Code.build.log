@@ -1,0 +1,21 @@
+21:39:20 **** Build of configuration Debug for project Morse_Code ****
+make -r all 
+Building target: Morse_Code.axf
+Invoking: MCU C++ Linker
+arm-none-eabi-c++ -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="Morse_Code.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "Morse_Code_Debug.ld" -o "Morse_Code.axf"  ./src/ITM_write.o ./src/Morse_Code.o ./src/cr_cpp_config.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:       29780 B       256 KB     11.36%
+         Ram0_16:        2260 B        16 KB     13.79%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: Morse_Code.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "Morse_Code.axf"; # arm-none-eabi-objcopy -v -O binary "Morse_Code.axf" "Morse_Code.bin" ; # checksum -p LPC1549 -d "Morse_Code.bin";
+   text	   data	    bss	    dec	    hex	filename
+  27616	   2164	     96	  29876	   74b4	Morse_Code.axf
+ 
+
+21:39:20 Build Finished (took 406ms)
+

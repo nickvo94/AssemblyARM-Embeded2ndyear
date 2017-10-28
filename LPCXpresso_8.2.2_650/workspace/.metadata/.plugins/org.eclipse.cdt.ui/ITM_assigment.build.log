@@ -1,0 +1,21 @@
+21:39:24 **** Build of configuration Debug for project ITM_assigment ****
+make -r all 
+Building target: ITM_assigment.axf
+Invoking: MCU C++ Linker
+arm-none-eabi-c++ -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="ITM_assigment.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "ITM_assigment_Debug.ld" -o "ITM_assigment.axf"  ./src/ITM_assigment.o ./src/ITM_write.o ./src/cr_cpp_config.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:      257140 B       256 KB     98.09%
+         Ram0_16:        8504 B        16 KB     51.90%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: ITM_assigment.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "ITM_assigment.axf"; # arm-none-eabi-objcopy -v -O binary "ITM_assigment.axf" "ITM_assigment.bin" ; # checksum -p LPC1549 -d "ITM_assigment.bin";
+   text	   data	    bss	    dec	    hex	filename
+ 254704	   2436	   6068	 263208	  40428	ITM_assigment.axf
+ 
+
+21:39:25 Build Finished (took 765ms)
+

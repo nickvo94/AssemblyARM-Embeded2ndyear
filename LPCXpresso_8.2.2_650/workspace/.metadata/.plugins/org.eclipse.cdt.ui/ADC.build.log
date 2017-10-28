@@ -1,0 +1,21 @@
+21:39:27 **** Build of configuration Debug for project ADC ****
+make -r all 
+Building target: ADC.axf
+Invoking: MCU C++ Linker
+arm-none-eabi-c++ -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="ADC.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "ADC_Debug.ld" -o "ADC.axf"  ./src/DigitalIOPin.o ./src/ITM_write.o ./src/adc.o ./src/cr_cpp_config.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:       28684 B       256 KB     10.94%
+         Ram0_16:        2312 B        16 KB     14.11%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: ADC.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "ADC.axf"; # arm-none-eabi-objcopy -v -O binary "ADC.axf" "ADC.bin" ; # checksum -p LPC1549 -d "ADC.bin";
+   text	   data	    bss	    dec	    hex	filename
+  26520	   2164	    148	  28832	   70a0	ADC.axf
+ 
+
+21:39:28 Build Finished (took 453ms)
+

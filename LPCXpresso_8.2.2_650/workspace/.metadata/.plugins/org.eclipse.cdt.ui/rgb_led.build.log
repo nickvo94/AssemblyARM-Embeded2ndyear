@@ -1,0 +1,21 @@
+21:39:31 **** Build of configuration Debug for project rgb_led ****
+make -r all 
+Building target: rgb_led.axf
+Invoking: MCU C++ Linker
+arm-none-eabi-c++ -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="rgb_led.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "rgb_led_Debug.ld" -o "rgb_led.axf"  ./src/cr_cpp_config.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/dice.o ./src/rgb_led.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:        7280 B       256 KB      2.78%
+         Ram0_16:        1104 B        16 KB      6.74%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: rgb_led.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "rgb_led.axf"; # arm-none-eabi-objcopy -v -O binary "rgb_led.axf" "rgb_led.bin" ; # checksum -p LPC1549 -d "rgb_led.bin";
+   text	   data	    bss	    dec	    hex	filename
+   6212	   1068	     36	   7316	   1c94	rgb_led.axf
+ 
+
+21:39:31 Build Finished (took 406ms)
+

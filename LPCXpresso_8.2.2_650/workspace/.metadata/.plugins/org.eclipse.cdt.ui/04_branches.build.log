@@ -1,0 +1,21 @@
+21:39:29 **** Build of configuration Debug for project 04_branches ****
+make -r all 
+Building target: 04_branches.axf
+Invoking: MCU Linker
+arm-none-eabi-gcc -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="04_branches.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "04_branches_Debug.ld" -o "04_branches.axf"  ./src/04_branches.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:       27112 B       256 KB     10.34%
+         Ram0_16:        2268 B        16 KB     13.84%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: 04_branches.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "04_branches.axf"; # arm-none-eabi-objcopy -v -O binary "04_branches.axf" "04_branches.bin" ; # checksum -p LPC1549 -d "04_branches.bin";
+   text	   data	    bss	    dec	    hex	filename
+  24908	   2204	     64	  27176	   6a28	04_branches.axf
+ 
+
+21:39:29 Build Finished (took 406ms)
+

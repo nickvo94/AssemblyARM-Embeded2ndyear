@@ -1,0 +1,21 @@
+21:39:18 **** Build of configuration Debug for project Subroutines ****
+make -r all 
+Building target: Subroutines.axf
+Invoking: MCU Linker
+arm-none-eabi-gcc -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="Subroutines.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "Subroutines_Debug.ld" -o "Subroutines.axf"  ./src/Subroutines.o ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:        5192 B       256 KB      1.98%
+         Ram0_16:           8 B        16 KB      0.05%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: Subroutines.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "Subroutines.axf"; # arm-none-eabi-objcopy -v -O binary "Subroutines.axf" "Subroutines.bin" ; # checksum -p LPC1549 -d "Subroutines.bin";
+   text	   data	    bss	    dec	    hex	filename
+   5192	      0	      8	   5200	   1450	Subroutines.axf
+ 
+
+21:39:18 Build Finished (took 406ms)
+

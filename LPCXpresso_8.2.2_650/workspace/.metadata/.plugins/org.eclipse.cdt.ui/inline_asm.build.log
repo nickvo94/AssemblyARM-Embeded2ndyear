@@ -1,0 +1,21 @@
+21:39:17 **** Build of configuration Debug for project inline_asm ****
+make -r all 
+Building target: inline_asm.axf
+Invoking: MCU Linker
+arm-none-eabi-gcc -nostdlib -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\Nick\Documents\LPCXpresso_8.2.2_650\workspace\lpc_chip_15xx\Debug" -Xlinker -Map="inline_asm.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "inline_asm_Debug.ld" -o "inline_asm.axf"  ./src/cr_startup_lpc15xx.o ./src/crp.o ./src/inline_asm.o ./src/sysinit.o   -llpc_board_nxp_lpcxpresso_1549 -llpc_chip_15xx
+Memory region         Used Size  Region Size  %age Used
+       MFlash256:       27304 B       256 KB     10.42%
+         Ram0_16:        2264 B        16 KB     13.82%
+         Ram1_16:          0 GB        16 KB      0.00%
+          Ram2_4:          0 GB         4 KB      0.00%
+Finished building target: inline_asm.axf
+ 
+make --no-print-directory post-build
+Performing post-build steps
+arm-none-eabi-size "inline_asm.axf"; # arm-none-eabi-objcopy -v -O binary "inline_asm.axf" "inline_asm.bin" ; # checksum -p LPC1549 -d "inline_asm.bin";
+   text	   data	    bss	    dec	    hex	filename
+  25100	   2204	     60	  27364	   6ae4	inline_asm.axf
+ 
+
+21:39:17 Build Finished (took 422ms)
+

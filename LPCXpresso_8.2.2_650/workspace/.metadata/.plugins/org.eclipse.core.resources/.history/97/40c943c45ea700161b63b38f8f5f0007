@@ -1,0 +1,132 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include <iostream>
+#include <cstdio>
+#include <stdio.h>
+
+#include <cr_section_macros.h>
+
+// TODO: insert other include files here
+#include "ITM_write.h"
+
+// TODO: insert other definitions and declarations here
+
+class DigitalIoPin {
+	int port;
+	int pin;
+	int IdNum;
+	bool hold;
+	int counterNum = 0;
+	public:
+		DigitalIoPin (int, int, bool, bool, bool, int, int);
+		//virtual ~DigitalIoPin();
+		bool read();
+		bool write();
+		int	count();
+	private:
+};
+
+DigitalIoPin :: DigitalIoPin(int setPin, int setPort, bool input, bool pullup, bool invert, int Id, int counter) {
+	ITM_write("IoPin object added.\n");
+	port = setPort;
+	pin = setPin;
+	IdNum = Id;
+	hold = false;
+	counterNum = counter;
+	//int ModeSet = IOCON_MODE_PULLUP;
+	Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	if (input) {
+		Chip_GPIO_SetPinDIRInput(LPC_GPIO, port, pin);
+	} else {
+		Chip_GPIO_SetPinDIROutput(LPC_GPIO, port, pin);
+	}
+}
+
+bool DigitalIoPin :: read(){
+	if (pin == 0 && port == 0) { ITM_write("pin/port lost"); }
+	if (Chip_GPIO_GetPinState(LPC_GPIO, port, pin)) {
+		if (hold == false) {
+			hold = true;
+			return true;
+		}
+	} else {
+		hold = false;
+		return false;
+	}
+	return false;
+}
+
+bool DigitalIoPin :: write(){
+	return false;
+}
+
+int DigitalIoPin :: count (){
+	while (Chip_GPIO_GetPinState(LPC_GPIO, 0, 17)){
+		if(hold == false){
+			hold = true;
+			return true;
+			counterNum = counterNum++;
+			return counterNum++;
+		}
+		else{
+			hold = false;
+			return false;
+		}
+		return counterNum++;
+}
+}
+
+
+int main(void) {
+	#if defined (__USE_LPCOPEN)
+		// Read clock settings and update SystemCoreClock variable
+	SystemCoreClockUpdate();
+	#if !defined(NO_BOARD_LIB)
+		// Set up and initialize all required blocks and
+		// functions related to the board hardware
+	Board_Init();
+		// Set the LED to the state of "On
+		//Board_LED_Set(0, false);
+	#endif
+	#endif
+	// TODO: insert code here
+    //DigitalIoPin sw1(0,17,true, true, false);
+    ITM_init();
+
+    // Force the counter to be placed into memory
+    volatile static int i = 0 ;
+    // Enter an infinite loop, just incrementing a counter
+    DigitalIoPin button1 (17, 0, true, true, false, 0, 0);
+    DigitalIoPin button2 (11, 1, true, true, false, 0, 0);
+    DigitalIoPin button3 (9, 1, true, true, false, 0, 0);
+
+    while(1) {
+    	int n1;
+    	n1 = button1.count();
+    	char result[50];
+    	//if (Chip_GPIO_GetPinState(LPC_GPIO, 0, 17)) {ITM_write("Test 1");}
+
+    	if (button1.read()) {
+    		snprintf(result, 50, "SW1 %d \n", n1);
+    		ITM_write(result);
+    	}
+    	if (button2.read()) { ITM_write("SW2 \n"); }
+    	if (button3.read()) { ITM_write("SW3 \n"); }
+    }
+    return 0 ;
+}

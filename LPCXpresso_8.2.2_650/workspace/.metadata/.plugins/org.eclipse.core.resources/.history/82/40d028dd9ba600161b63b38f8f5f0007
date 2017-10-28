@@ -1,0 +1,74 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include <iostream>
+
+#include <cr_section_macros.h>
+
+// TODO: insert other include files here
+#include "ITM_write.h"
+
+// TODO: insert other definitions and declarations here
+class DigitalIoPin {
+public:
+DigitalIoPin(int pin, int port, bool input = true, bool pullup = true, bool invert = false);
+virtual ~DigitalIoPin();
+bool read();
+void write(bool value);
+private:
+// add these as needed
+};
+
+//DigitalIoPin::DigitalIoPin
+
+void setupButton() {
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 17, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 0, 17);
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 11, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 1, 11);
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 1, 9);
+
+}
+
+/*bool read(){
+	return;
+}*/
+
+int main(void) {
+
+
+    // TODO: insert code here
+    //DigitalIoPin sw1(0,17,true, true, false);
+    ITM_init();
+    bool butState = false;
+    int counter = 0;
+    // Force the counter to be placed into memory
+    volatile static int i = 0 ;
+    // Enter an infinite loop, just incrementing a counter
+    while(1) {
+    	butState = Chip_GPIO_GetPinState(LPC_GPIO, 1, 11);
+		if (butState == true) {
+			ITM_write("SW1 \n");
+		} else {
+			ITM_write("-- \n");
+		}
+    }
+    return 0 ;
+}

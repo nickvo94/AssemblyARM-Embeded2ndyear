@@ -1,0 +1,356 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+#define TICKRATE_HZ1 (1000)//100000
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include "DigitalIOPin.h"
+#include "LiquidCrystal.h"
+#include <stdio.h>
+#include "RealTimeClock.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/**
+* @brief Handle interrupt from SysTick timer
+* @return Nothing
+*/
+
+using namespace std;
+
+RealTimeClock myClock;
+
+static RealTimeClock *clock = &myClock;
+
+static volatile uint32_t timerTick;
+
+void SysTick_Handler(void)
+{
+	if(clock != NULL) clock->Tick();//clock->Tick();
+	//timerTick++;
+}
+#ifdef __cplusplus
+}
+#endif
+
+void WriteTimeTemplate(int now,LiquidCrystal *display){
+	display->setCursor(2, 1);
+	display->print("Time");
+	display->setCursor(13, 1);
+	display->print(":");
+	display->setCursor(10, 1);
+	display->print(":");
+	display->setCursor(12, 1);
+	display->print("0");
+	display->setCursor(11, 1);
+	display->print("0");
+	display->setCursor(9, 1);
+	display->print("0");
+	display->setCursor(14, 1);
+	display->print("0");
+
+}
+
+void WriteSecond(int now, LiquidCrystal *display){
+	char S[3]= {0,0,0};
+	int s;
+	s = (now/10)%60;
+	sprintf(S,"%d", s);
+	if(s < 10){
+		display->setCursor(15, 1);
+		display->print(S);
+	}else{
+		display->setCursor(14, 1);
+		display->print(S);}
+	if(s == 0 ){display->setCursor(14, 1); display->print("0");}
+
+}
+
+void WriteMinute(int now,LiquidCrystal *display ){
+	char M[3]= {0,0,0};
+	int m;
+	m = (now/600)%60;
+	if(m>60){m=0;}
+	sprintf(M,"%d", m);
+	if(m < 10){
+		display->setCursor(12, 1);
+		display->print(M);
+	}else{
+		display->setCursor(11, 1);
+		display->print(M);}
+	if(m == 0 ){display->setCursor(11, 1);display->print("0");}
+}
+
+void WriteHour(int now,LiquidCrystal *display){
+	char H[3]= {0,0,0};
+	int h;
+	h = (now/36000)%24;
+	if(h>24){h=0;}
+	sprintf(H,"%d", h);
+	if(h < 10){
+		display->setCursor(9, 1);
+		display->print(H);
+	}else{
+		display->setCursor(8, 1);
+		display->print(H);}
+	if(h == 0 ){display->setCursor(8, 1);display->print(" ");}
+}
+
+void WriteSetAlarm (LiquidCrystal *display){
+	display->setCursor(2, 0);
+	display->print("Set Alarm");
+	display->setCursor(3, 1);
+	display->print(":");
+	display->setCursor(2, 1);
+	display->print("0");
+	display->setCursor(4, 1);
+	display->print("0");
+	display->setCursor(5, 1);
+	display->print("0");
+
+}
+
+void WriteSetTime (LiquidCrystal *display){
+	display->setCursor(2, 0);
+	display->print("Set Time ");
+	display->setCursor(3, 1);
+	display->print(":");
+	display->setCursor(2, 1);
+	display->print("0");
+	display->setCursor(4, 1);
+	display->print("0");
+	display->setCursor(5, 1);
+	display->print("0");
+	display->setCursor(13, 0);
+	display->print("   ");
+
+}
+
+int main(void) {
+	uint32_t sysTickRate;
+
+	#if defined (__USE_LPCOPEN)
+	#if !defined(NO_BOARD_LIB)
+		Board_Init();
+		Chip_RIT_Init(LPC_RITIMER); // initialize RIT (enable clocking etc.)
+		Board_LED_Set(0, true);
+	#endif
+	#endif
+	SystemCoreClockUpdate();
+	Chip_Clock_SetSysTickClockDiv(1);
+	sysTickRate = Chip_Clock_GetSysTickClockRate();
+	SysTick_Config(sysTickRate / TICKRATE_HZ1);
+
+    DigitalIoPin d4 (10, 0, true, true, false);
+
+    DigitalIoPin rs (8, 0, false, true, false);
+    DigitalIoPin enable (6, 1, false, true, false);
+    DigitalIoPin d0 (8, 1, false, true, false);
+    DigitalIoPin d1 (5, 0, false, true, false);
+    DigitalIoPin d2 (6, 0, false, true, false);
+    DigitalIoPin d3 (7, 0, false, true, false);
+
+    DigitalIoPin button1 (17, 0, true, true, false);
+	DigitalIoPin button2 (11, 1, true, true, false);
+	DigitalIoPin button3 (9, 1, true, true, false);
+
+    LiquidCrystal lcd(&rs, &enable, &d0, &d1, &d2, &d3);
+
+
+    int valueS;
+    int now;
+
+    int compare;
+    int updateTime = 0;
+    int test = 0;
+    bool ledTest = false;
+
+    WriteTimeTemplate(now,&lcd);
+
+	bool but1value;
+	bool but2value;
+	bool but3value;
+
+	int alarmH = 0;
+	int alarmM = 0;
+	char aH[3] = {0,0,0};
+	char aM[3] = {0,0,0};
+	int but2press = 0;
+	int but1press = 0;
+	int but3press = 0;
+	char onOff[] = "OFF";
+
+    while(1) {
+    	//lcd.clear();
+
+    	now = clock->GetTick();
+    	//second
+		WriteSecond(now, &lcd);
+		//minute
+		WriteMinute(now, &lcd);
+		//hour
+		WriteHour(now, &lcd);
+
+    	but1value = button1.read();
+		but2value = button2.read();
+		but3value = button3.read();
+
+    	if(but1value == true){
+    		while(but1value){
+				but1value = button1.read();
+			} //but1value : false
+    		but1press = but1press + 1;
+    		lcd.clear();
+    		while(but1press == 1){  //On,off
+    			WriteSetAlarm(&lcd);
+				lcd.setCursor(12, 0);
+				lcd.print(">");
+				lcd.setCursor(13, 0);
+				lcd.print(onOff);
+
+				but2value = button2.read();// read but2 on
+				if(but2value == true){
+					while(but2value){
+						but2value = button2.read();
+					}
+					lcd.setCursor(13, 0);
+					lcd.print("ON ");
+					onOff = "ON";
+				}
+
+				but3value = button3.read();// read but3 off
+				if(but3value == true){
+					while(but3value){
+						but3value = button3.read();
+					}
+					lcd.setCursor(13, 0);
+					lcd.print("OFF");
+					onOff = "OFF ";
+				}
+
+
+				//read if button 1 pressed
+				but1value = button1.read();
+				if(but1value == true){
+					while(but1value){
+						but1value = button1.read();
+					}
+					but1press = but1press + 1;    //but1press = 2
+					while(but1press == 2){
+						lcd.setCursor(12, 0);
+						lcd.print(" ");
+						lcd.setCursor(1, 1);
+						lcd.print(">");
+						//read if button 1 pressed
+						but1value = button1.read();
+						if(but1value == true){
+							while(but1value){
+								but1value = button1.read();
+							}
+							but1press = but1press + 1;    //but1press = 3
+							while(but1press == 3){
+								lcd.setCursor(1, 1);
+								lcd.print(" ");
+								lcd.setCursor(3, 1);
+								lcd.print(">");
+								//read if button 1 pressed
+								but1value = button1.read();
+								if(but1value == true){
+									while(but1value){
+										but1value = button1.read();
+									}
+									but1press = but1press + 1;    //but1press = 3
+									while(but1press == 4){
+										WriteSetTime(&lcd);
+										lcd.setCursor(1, 1);
+										lcd.print(">");
+
+										//read if button 1 pressed
+										but1value = button1.read();
+										if(but1value == true){
+											while(but1value){
+												but1value = button1.read();
+											}
+											but1press = but1press + 1;    //but1press = 4
+											while(but1press == 5){
+												lcd.setCursor(1, 1);
+												lcd.print(" ");
+												lcd.setCursor(3, 1);
+												lcd.print(">");
+												//read if button 1 pressed
+												but1value = button1.read();
+												if(but1value == true){
+													while(but1value){
+														but1value = button1.read();
+														but1press = 0;
+														lcd.clear();
+														WriteTimeTemplate(now,&lcd);
+													}
+													break;
+												}
+											}
+										}
+										//break;
+									}
+								}
+								//break;
+
+							}
+						}
+					}
+
+				}
+				//break;
+
+		}
+
+	}
+
+
+
+
+
+
+
+
+
+    }
+    return 0 ;
+}
+
+
+
+//sw2
+/*if(but2value && but2press == 1 ){
+					but2press = 0;
+					alarmH = alarmH + 1;
+					//alarm hour
+					if(alarmH>23){alarmH=0;}
+						sprintf(aH,"%d", alarmH);
+						if(alarmH < 10){
+							lcd.setCursor(9, 1);
+							lcd.print(aH);
+						}else{
+							lcd.setCursor(8, 1);
+							lcd.print(aH);}
+						if(alarmH == 0 ){lcd.setCursor(8, 1);lcd.print(" ");}
+
+					while(but2value){
+						but2press = 0;
+						but2value = button2.read();
+					}
+					but2press = 1;
+
+				}*/

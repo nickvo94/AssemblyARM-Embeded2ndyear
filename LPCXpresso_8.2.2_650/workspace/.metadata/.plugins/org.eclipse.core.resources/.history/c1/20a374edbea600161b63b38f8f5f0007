@@ -1,0 +1,101 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include <iostream>
+
+#include <cr_section_macros.h>
+
+// TODO: insert other include files here
+#include "ITM_write.h"
+
+// TODO: insert other definitions and declarations here
+
+class DigitalIoPin {
+	public:
+		DigitalIoPin (int, int, bool, bool, bool, int);
+		//virtual ~DigitalIoPin();
+		void write();
+		void setupButton(void);
+		void update(void);
+	private:
+		int port;
+		int pin;
+		int IdNum;
+		bool hold;
+};
+
+DigitalIoPin :: DigitalIoPin(int pin, int port, bool input = true, bool pullup = true, bool invert = false) {
+	port = port;
+	pin = pin;
+	IdNum = Id;
+	hold = false;
+
+	//int ModeSet = IOCON_MODE_PULLUP;
+	Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	if (input) {
+		Chip_GPIO_SetPinDIRInput(LPC_GPIO, port, pin);
+	} else {
+		Chip_GPIO_SetPinDIROutput(LPC_GPIO, port, pin);
+	}
+}
+
+bool DigitalIoPin :: read(){
+	bool state = Chip_GPIO_GetPinState(LPC_GPIO, port, pin);
+	if (state) {
+		if (hold == false) {
+			hold = true;
+			DigitalIoPin::write();
+		}
+	} else {
+		hold = false;
+	}
+}
+
+void DigitalIoPin :: write(){
+	ITM_write("SW1 \n");
+}
+
+int main(void) {
+	#if defined (__USE_LPCOPEN)
+		// Read clock settings and update SystemCoreClock variable
+	SystemCoreClockUpdate();
+	#if !defined(NO_BOARD_LIB)
+		// Set up and initialize all required blocks and
+		// functions related to the board hardware
+	Board_Init();
+		// Set the LED to the state of "On
+		//Board_LED_Set(0, false);
+	#endif
+	#endif
+	// TODO: insert code here
+    //DigitalIoPin sw1(0,17,true, true, false);
+    ITM_init();
+
+    // Force the counter to be placed into memory
+    volatile static int i = 0 ;
+    // Enter an infinite loop, just incrementing a counter
+    DigitalIoPin button1 (17, 0, true, true, false, 0);
+    DigitalIoPin button2 (11, 1, true, true, false, 0);
+    DigitalIoPin button3 (9, 1, true, true, false, 0);
+
+    while(1) {
+    	button1.read();
+    	button2.read();
+    	button3.read();
+    }
+    return 0 ;
+}

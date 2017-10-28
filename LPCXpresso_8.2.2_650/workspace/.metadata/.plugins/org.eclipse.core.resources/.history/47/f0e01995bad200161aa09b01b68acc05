@@ -1,0 +1,28 @@
+/*
+ * DeltaTime.cpp
+ *
+ *  Created on: Jan 2, 2017
+ *      Author: Nick
+ */
+
+#include "DeltaTime.h"
+
+DeltaTime::DeltaTime() {
+	start = ticks;
+	until = ticks;
+
+}
+
+void DeltaTime::startWait(uint32_t waitTime) {
+	start = ticks;
+	until = ticks + waitTime;
+}
+
+bool DeltaTime::isDone() {
+	if (ticks >= until) { return true; }
+	return false;
+}
+
+uint32_t DeltaTime::hasWaited() {
+	return ticks - start;
+}

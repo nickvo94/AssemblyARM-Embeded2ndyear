@@ -1,0 +1,178 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : $(author)
+ Version     :
+ Copyright   : $(copyright)
+ Description : main definition
+===============================================================================
+*/
+
+#if defined (__USE_LPCOPEN)
+#if defined(NO_BOARD_LIB)
+#include "chip.h"
+#else
+#include "board.h"
+#endif
+#endif
+#include <stdint.h>
+#include <cr_section_macros.h>
+#include <stdlib.h>
+#include <time.h>
+
+// TODO: insert other include files here
+
+// TODO: insert other definitions and declarations here
+class Dice {
+public:
+	Dice();
+	virtual ~Dice();
+	void Show(int number);
+};
+
+/* you need to figure out yourself the private members that you need */
+
+#define MAXLEDS 7
+static const uint8_t diceport[] = { 0, 1, 0, 0, 0, 0, 1 };
+static const uint8_t dicepins[] = { 0, 3, 16, 10, 9, 29, 9 };
+
+void setLED(int idx, bool state) {
+	Chip_IOCON_PinMuxSet(LPC_IOCON, diceport[idx], dicepins[idx], IOCON_MODE_INACT | IOCON_DIGMODE_EN);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, diceport[idx], dicepins[idx]);
+	Chip_GPIO_SetPinState(LPC_GPIO, diceport[idx], dicepins[idx], state);
+	return;
+}
+
+void setupButton() {
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 0, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 1, 0);
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 8, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 0, 8);
+}
+
+int main(void) {
+//setLED(5,true);
+
+#if defined (__USE_LPCOPEN)
+    // Read clock settings and update SystemCoreClock variable
+SystemCoreClockUpdate();
+#if !defined(NO_BOARD_LIB)
+    // Set up and initialize all required blocks and
+    // functions related to the board hardware
+Board_Init();
+    // Set the LED to the state of "On
+    //Board_LED_Set(0, false);
+#endif
+#endif
+	//while(true){
+    // TODO: insert code here
+
+	bool buttonPress1;
+	bool buttonPress2;
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 0, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 1, 0);
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 8, (IOCON_MODE_PULLUP | IOCON_DIGMODE_EN | IOCON_INV_EN));
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 0, 8);
+	srand (time(NULL));
+
+	while(true) {
+
+		buttonPress1 = Chip_GPIO_GetPinState(LPC_GPIO, 1, 0);
+		int LedNumber = 0;
+		if ( buttonPress1 ) {
+			for (LedNumber = 0; LedNumber < MAXLEDS; LedNumber++){
+				setLED(LedNumber, buttonPress1);
+			}
+		}
+
+		buttonPress2 = Chip_GPIO_GetPinState(LPC_GPIO, 0, 8);
+		//setLED(4, buttonPress2);
+		int RandomNum;
+		int counter = 0;
+		int times = 1 ;
+		RandomNum = rand()%6+1 ;
+
+		if (buttonPress2 == true){
+			// Clear all LEDs
+			for (LedNumber = 0; LedNumber < MAXLEDS; LedNumber++){
+				setLED(LedNumber, false);
+			}
+			switch (RandomNum) {
+			case 1:
+				setLED(3, buttonPress2);		//PD4
+			case 2:
+				setLED(0, buttonPress2);		//PD7
+				setLED(4, buttonPress2);		//PD3
+			case 3:
+				setLED(0, buttonPress2);
+				setLED(4, buttonPress2);
+				setLED(3, buttonPress2);
+			case 4:
+				setLED(0, buttonPress2);
+				setLED(4, buttonPress2);
+				setLED(6, buttonPress2);		//PD1
+				setLED(2, buttonPress2);		//PD5
+			case 5:
+				setLED(0, buttonPress2);
+				setLED(4, buttonPress2);
+				setLED(6, buttonPress2);		//PD1
+				setLED(2, buttonPress2);
+				setLED(3, buttonPress2);
+			case 6:
+				setLED(0, buttonPress2);
+				setLED(4, buttonPress2);
+				setLED(6, buttonPress2);		//PD1
+				setLED(2, buttonPress2);		//PD5
+				setLED(1, buttonPress2);		//PD6
+				setLED(5, buttonPress2);		//PD2
+			}
+			buttonPress2 = false;
+		}
+	}
+
+
+
+
+    //while(Chip_GPIO_GetPinState(LPC_GPIO, 0, 8)== true) {
+
+    //}
+	//}
+    /*
+    if (buttonPress) {
+    	setLED(0, true);
+    } else {
+    	setLED(0, false);
+    }
+    */
+    //for (idx = 0; idx < MAXLEDS; idx++) {
+    	//Chip_IOCON_PinMuxSet(LPC_IOCON, diceport[idx], dicepins[idx], IOCON_MODE_INACT | IOCON_DIGMODE_EN);
+    	//Chip_GPIO_SetPinDIROutput(LPC_GPIO, diceport[idx], dicepins[idx]);
+    	//Chip_GPIO_SetPinState(LPC_GPIO, diceport[idx], dicepins[idx], false);
+    //}
+    	/*
+    	if(x == 0){
+    		for (idx = 0; idx < MAXLEDS; idx++) {
+    			Chip_IOCON_PinMuxSet(LPC_IOCON, diceport[idx], dicepins[idx], IOCON_MODE_INACT | IOCON_DIGMODE_EN);
+    		    Chip_GPIO_SetPinDIROutput(LPC_GPIO, diceport[idx], dicepins[idx]);
+    		    Chip_GPIO_SetPinState(LPC_GPIO, diceport[idx], dicepins[idx], true);
+    		}
+    	} else {
+    		for (idx = 0; idx < MAXLEDS; idx++) {
+    			Chip_IOCON_PinMuxSet(LPC_IOCON, diceport[idx], dicepins[idx], IOCON_MODE_INACT | IOCON_DIGMODE_EN);
+    		    Chip_GPIO_SetPinDIROutput(LPC_GPIO, diceport[idx], dicepins[idx]);
+    		    Chip_GPIO_SetPinState(LPC_GPIO, diceport[idx], dicepins[idx], false);
+    		}
+    	}; */
+
+
+    // Force the counter to be placed into memory
+    volatile static int i = 0 ;
+    // Enter an infinite loop, just incrementing a counter
+    //while(1) {
+        //i++ ;
+    //}
+    return 0 ;
+};
+
+
